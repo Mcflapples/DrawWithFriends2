@@ -9,7 +9,7 @@ import Tool from "../../utils/Tool";
 //import { userInfo } from "os";
 
 //The serverAddress of the App
-const serverAddress="http://localhost:3000";
+const serverAddress="http://localhost:8080";
 
 
 //Setup the DrawRoom components to handle realtime drawing
