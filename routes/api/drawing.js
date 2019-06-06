@@ -2,7 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const http = require("http").Server(express);
-const io = require("socket.io")(http);
+const io = require("socket.io")();
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
@@ -75,47 +75,81 @@ class Sessions {
 
 
   //Start the Socket connection which will push and emit all ActiveUsers Positions to other users
-  io.on("connection", socket => {
-      setInterval(() => {
-         const sessionKeys = Object.keys(sessions);
-         const cursorPositions = [];
-         //Loop and update cursorPositions for each User
-         for(let i =0, n = sessionKeys.length; i < n; i ++){
-            const key = sessionKeys[i];
-            const session = sessions[key];
-            cursorPositions.push({
-                x: user.getMouseX(),
-                y: user.getMouseY(),
-                userName: user.getName(),
-                key: user.getName()
-            });
-         }
-         //Emit - send the cursor positions to all other clients connected
-         socket.emit("cursor", cursorPositions);
-      }, Math.round(1000/30));
+  //io.on("connection", socket => {
+  //  while(1){
+  //        console.log("A connection has been established");
+  //       const sessionKeys = Object.keys(sessions);
+  //       const cursorPositions = [];
+  //       //Loop and update cursorPositions for each User
+  //       for(let i =0, n = sessionKeys.length; i < n; i ++){
+  //          const key = sessionKeys[i];
+  //          const session = sessions[key];
+  //          cursorPositions.push({
+  //              x: session.getMouseX(),
+  //              y: session.getMouseY(),
+  //              userName: session.getName(),
+  //              key: session.getName()
+  //          });
+  //       }
+  //       //Emit - send the cursor positions to all other clients connected
+  //       socket.emit("cursor", cursorPositions);
+  //      }
+  //      });
+  //    io.on("line", data => {
+  //        console.log("A line is being drawn");
+  //        const session = sessions[data.sessionKey];
+  //        session.resetTimer();
+  //        session.setMouseX(data.x);
+  //        session.setMouseY(data.y);
+  //        const lineCoordinates = data.lineCoordinates;
+  //        io.emit("line", {
+  //            lineWidth: data.lineWidth,
+  //            lineColour: data.lineColour,
+  //            lineCoordinates
+  //        });
+  //    });
 
-      io.on("line", data => {
-          const session = sessions[data.sessionKey];
-          session.resetTimer();
-          session.setMouseX(data.x);
-          session.setMouseY(data.y);
+  io.on('connection', socket => {
+    setInterval(() => {
+      const sessionKeys = Object.keys(sessions);
+      const cursorPositions = [];
+      for(let i = 0, n = sessionKeys.length; i < n; i ++) {
+        const key = sessionKeys[i];
+        const session = sessions[key];
+        cursorPositions.push({
+          x:    session.getMouseX(),
+          y:    session.getMouseY(),
+          name: session.getName(),
+          key: session.getName()
+        });
+      }
+  
+      socket.emit('cursor', cursorPositions);
+    }, Math.round(1000/30));
+      socket.on('cursor', data => {
+        const session = sessions[data.sessionKey];
+        session.resetTimer();
+        session.setMouseX(data.x);
+        session.setMouseY(data.y);
       });
-      //Sending the line they are currently drawing to all other users
-      io.on("line", data => {
-          const session = sessions[data.sessionKey];
-          const lineCoordinates = data.lineCoordinates;
-          io.emit("line", {
-              lineWidth: data.lineWidth,
-              lineColour: data.lineColour,
-              lineCoordinates
-          });
+      socket.on('line', data => {
+        const session = sessions[data.sessionKey];
+        const lineCoordinates = data.lineCoordinates;
+        io.emit('line', { 
+            lineWidth: data.lineWidth,
+            lineColor: data.lineColor,
+            lineCoordinates
+        });
       });
   });
+  http.listen(8080, () => {
+      //When the server is initialized.
+  });
 
-  //http.listen(80, () => {
-    //  console.log("Listening on Port 80");
-      //Initialise the server
+  //http.listen(8081, () => {
+  //    console.log("Listening on Port 80");
+  //    //Initialise the server
   //});
-  
+
   //Export router so API requests can be called from front-end
 module.exports = router;

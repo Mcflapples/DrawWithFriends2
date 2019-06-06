@@ -3,11 +3,17 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const passport = require("passport");
+const cors = require('cors');
 const users = require("./routes/api/users");
 const drawing = require("./routes/api/drawing");
 
 //Initialise the application 
 const application = express();
+
+application.use(cors({
+    origin: "http://localhost:3000",
+    credentials: true
+}));
 
 
 //Body Parser middleware - tell the application what parsing to use
