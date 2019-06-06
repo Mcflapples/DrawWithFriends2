@@ -1,5 +1,5 @@
 //Using Axios, handle all Authorisation requests that are sent in HTTPRequests
-import axios from "axios";
+import Axios from "axios";
 import setAuthToken from "../utils/setAuthToken";
 import jwt_decode from "jwt-decode";
 
@@ -9,6 +9,9 @@ import {
     SET_CURRENT_USER,
     USER_LOADING
 } from "./types";
+
+
+const axios = Axios.create({baseURL: 'http://localhost:8080'})
 
 //Register the User and dispatch the actions to be handled by reducers
 export const registerUser = (userData, history)=> dispatch=> {
