@@ -38,10 +38,10 @@ require("./config/passport")(passport);
 
 //Routes currently in Use
 application.use("/api/users", users);
-//application.use("/api/drawing", drawing);
+application.use("/api/drawing", drawing);
 
-//Port for server to run on, using 8080, PORT is an Environment variable
-const port = process.env.PORT || 80;
-
+//Port for server to run on, using 80, PORT is an Environment variable
+const port = process.env.PORT || 8080;
+//const port = 
 //Listen on the port selected, log if server listen is successful
 application.listen(port, ()=> console.log(`Server Up and Running on Port ${port} !`));

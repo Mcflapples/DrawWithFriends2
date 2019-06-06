@@ -1,18 +1,19 @@
 //this api will handle the sockets and connections on the DrawRoom components
-const app = require("express")();
-const http = require("http").Server(app);
+const express = require("express");
+const router = express.Router();
+const http = require("http").Server(express);
 const io = require("socket.io")(http);
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
 
-//Set the app to use the imported components for package handling
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended:false}));
+//Set the EXPRESS to use the imported components for package handling
+//express.use(cors());
+//express.use(bodyParser.json());
+//express.use(bodyParser.urlencoded({extended:false}));
 
 //Create a special ID to help track what clients are sending what requests
-app.post('/DrawRoom', (req,res)=> {
+router.post('/DrawRoom', (req,res)=> {
     const sessionKey = generateId(24);
     sessions[sessionKey] = new Sessions(req.body.userName);
     res.json({success: true, sessionKey});
@@ -115,3 +116,6 @@ class Sessions {
     //  console.log("Listening on Port 80");
       //Initialise the server
   //});
+  
+  //Export router so API requests can be called from front-end
+module.exports = router;
