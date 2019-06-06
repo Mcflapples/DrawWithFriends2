@@ -3,8 +3,6 @@ const express = require("express");
 const router = express.Router();
 const http = require("http").Server(express);
 const io = require("socket.io")();
-const bodyParser = require('body-parser');
-const cors = require('cors');
 
 
 //Set the EXPRESS to use the imported components for package handling
@@ -12,8 +10,12 @@ const cors = require('cors');
 //express.use(bodyParser.json());
 //express.use(bodyParser.urlencoded({extended:false}));
 
-//Create a special ID to help track what clients are sending what requests
-router.post('/DrawRoom', (req,res)=> {
+//Route to create special ID for User's Session
+//@route POST api/users/drawRoom
+//@desc create and assign a unique sesisonKey
+//@access Private facing API, only to those with access
+router.post('/drawRoom', (req,res)=> {
+  console.log("Post has been Made to create a sesisonKey");
     const sessionKey = generateId(24);
     sessions[sessionKey] = new Sessions(req.body.userName);
     res.json({success: true, sessionKey});
@@ -77,7 +79,6 @@ class Sessions {
   //Start the Socket connection which will push and emit all ActiveUsers Positions to other users
   io.on("connection", socket => {
     setInterval(() => {
-      
           console.log("A connection has been established");
          const sessionKeys = Object.keys(sessions);
          const cursorPositions = [];
@@ -116,10 +117,10 @@ class Sessions {
     });
 
 
-  http.listen(8081, () => {
-      console.log("Listening on Port 80");
-      //Initialise the server
-  });
+    //The port that the sockets will continue to listen on for updates
+ // http.listen(3001, () => {
+   //   console.log("Listening on Port 3001");
+  //});
 
   //Export router so API requests can be called from front-end
 module.exports = router;

@@ -6,10 +6,10 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import {logoutUser } from "../../actions/authorisationActions";
 import Tool from "../../utils/Tool";
-import { userInfo } from "os";
+//import { userInfo } from "os";
 
 //The serverAddress of the App
-const serverAddress="http://localhost:8081";
+const serverAddress="http://localhost:3000";
 
 
 //Setup the DrawRoom components to handle realtime drawing
@@ -32,10 +32,13 @@ class DrawRoom extends Component {
       loaded: false
     }
   }
+
   componentDidMount(){
     this.socket = io(serverAddress);
-    this.socket.on("line", data =>{
-      if(this.state.loaded){
+    console.log("Draw Room Component Mounted");
+    console.log(this.socket);
+    this.socket.on("line", data => {
+      if(this.state.loaded) {
         //Get the disaplay values from the Tool
         const [x1,y1,x2,y2] = data.lineCoordinates;
         const displayCtx = this.display.current.getContext("2d");
@@ -48,30 +51,32 @@ class DrawRoom extends Component {
       }
     });
     //Start the Socket
-    this.socket.on("cursor", data =>{
-      if(this.state.loaded){
+    this.socket.on("cursor", data => {
+      if(this.state.loaded) {
         this.setState({cursors: data});
       }
     });
+
   setInterval(() => {
     if(this.state.loaded){
       //The Properties of the user that is logged in
-const { user } = this.props.auth;
+//const { user } = this.props.auth;
       this.socket.emit("cursor", {
         userName: this.state.userName,
         x: this.state.mouseX,
         y: this.state.mouseY,
-        sessionKey: user.userName
+        sessionKey: window.localStorage.getItem('sessionKey')
       });
     }
-  },8080);
+  },3000);
+
   setInterval(() => {
   }, Math.round(1000/60));
   }
     handleJoin(e){
-      fetch(serverAddress, {
+      fetch(serverAddress + '/login', {
         body: JSON.stringify({
-          userName: userInfo.userName
+          userName: this.state.userName
         }),
         method: 'post',
         cache: 'no-cache',
@@ -80,6 +85,13 @@ const { user } = this.props.auth;
         }
       })
       .then(response => response.json())
+      .then(json => {
+        if(json.success) {
+          localStorage.sessionKey = json.sessionKey;
+          this.setState({loaded:true});
+        }
+      });
+      console.log("Fetch Request Sent");
     }
     //Use of the Tool component
     handleToolClick(toolId){
@@ -98,7 +110,7 @@ const { user } = this.props.auth;
       //Check if the User is currently using pen or eraser and clicked down
       if(this.state.isPenDown){
         //The Properties of the user that is logged in
-        const { user } = this.props.auth;
+        //const { user } = this.props.auth;
         this.display.current.getContext("2d").lineCap = 'round';
         const {top, left} = this.display.current.getBoundingClientRect();
         switch(this.state.toolId){
@@ -107,7 +119,7 @@ const { user } = this.props.auth;
               lineWidth: this.state.brushSize,
               lineColor: this.state.brushColour,
               lineCoordinates: [this.state.prevX - left, this.state.prevY - top, this.state.mouseX - left, this.state.mouseY - top],
-              sessionKey: user.userName
+              sessionKey: window.localStorage.getItem("sessionKey")
             });
             break;
             case 'rubber':
@@ -115,7 +127,7 @@ const { user } = this.props.auth;
                   lineWidth: this.state.brushSize,
                   lineColor: {r: 255, g: 255, b: 255, a: this.state.brushColor.a},
                   lineCoordinates: [this.state.prevX, this.state.prevY, this.state.mouseX, this.state.mouseY],
-                  sessionKey: user.userName
+                  sessionKey: window.localStorage.getItem("sessionKey")
                 });
                 break;
             default:
@@ -123,7 +135,6 @@ const { user } = this.props.auth;
         }
       }
       this.setState({
-        userName: this.props.auth.userName,
         prevX: this.state.mouseX,
         prevY: this.state.mouseY
       });
@@ -137,7 +148,7 @@ const { user } = this.props.auth;
       this.socket.emit('cursor', {
         x: this.state.mouseX,
         y: this.state.mouseY,
-        sessionKey: this.props.auth
+        sessionKey: window.localStorage.getItem('sessionKey')
       });
     }
 
@@ -163,28 +174,29 @@ const { user } = this.props.auth;
       const { user } = this.props.auth;
         //Create a Canvas to Draw On, the Tools for Drawing and the Logout Button
         return (
-          <div>
+        <div>
              <div style={{ height: "30vh" }} className="container valign-wrapper">
- <div className="row">
-   <div className="col s12 center-align">
-     <h4>
-       <b>Had Enough?,</b> {user.userName.split(" ")[0]}
-       </h4>
-       <button
-       style={{
-         width: "150px",
-         borderRadius: "3px",
-         letterSpacing: "1.5px",
-         marginTop: "1rem"
-       }}
-       onClick={this.onLogoutClick}
-       className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-     >
-       Logout Here
-     </button>
-     </div>
- </div>
-</div>
+            <div className="row">
+               <div className="col s12 center-align">
+                  <h4>
+                   <b>Had Enough?</b> {user.userName.split(" ")[0]}
+                   </h4>
+                    <button
+                        style={{
+                        width: "150px",
+                        borderRadius: "3px",
+                        letterSpacing: "1.5px",
+                        marginTop: "1rem"
+                       }}
+                       onClick={this.onLogoutClick}
+                      className="btn btn-large waves-effect waves-light hoverable blue accent-3"
+                       >
+                       Logout Here
+                     </button>
+                 </div>
+              </div>
+            </div>
+
           <canvas className="display" width="1000" height="850" ref={this.display} onMouseMove={this.handleDisplayMouseMove.bind(this)} onMouseDown={this.handleDisplayMouseDown.bind(this)} onMouseUp={this.handleDisplayMouseUp.bind(this)}></canvas>
           <div className="toolbox">
               <ChromePicker color={this.state.brushColor} onChangeComplete={this.handleColorChange.bind(this)}></ChromePicker>
@@ -196,14 +208,12 @@ const { user } = this.props.auth;
           {
             this.state.cursors.map(cursor => (
               <div key={cursor.sessionKey} className="cursor" style={{left: (cursor.x+8) + 'px', top: (cursor.y+8) + 'px'}}>
-                <div style={{borderRadius: '75px', position: 'relative', background: 'silver', width: '2px', height: '2px'}}></div> {cursor.sessionKey}
+                <div style={{borderRadius: '75px', position: 'relative', background: 'silver', width: '2px', height: '2px'}}></div> {cursor.name}
               </div>
             ))
           }
-         </div>
- 
-        );
-    }
+          </div>);
+}
 }
 
 //Assign the properties of the user in this component
