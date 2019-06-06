@@ -110,7 +110,6 @@ function generateId(len) {
 }
 
 // Socket IO stuff is now down here because you need to use the same HTTP proxy instance
-
 const board = {};
 
 //Start the Socket connection which will push and emit all ActiveUsers Positions to other users
