@@ -135,12 +135,12 @@ class DrawRoom extends Component {
 
   //Check if mouse is clicked down
   handleDisplayMouseDown(e) {
-    console.log("DOWN")
+    console.log(" Mouse DOWN")
     this.setState({ isPenDown: true });
   }
   //Check is mouse is not clicked down
   handleDisplayMouseUp(e) {
-    console.log("UP")
+    console.log("Mouse UP")
     this.setState({ isPenDown: false });
   }
   //Check if the brush has been resized
